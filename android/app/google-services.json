@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "663780519276",
+    "project_id": "pockiwords-app",
+    "storage_bucket": "pockiwords-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663780519276:android:f8a3967c9864bf0c2fd749",
+        "android_client_info": {
+          "package_name": "com.example.flutter_pockiwords"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChJNH_iXLCwllEDrm2w3Y86SqTlV1xNtQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

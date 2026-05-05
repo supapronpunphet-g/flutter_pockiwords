@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// PockiWords Firestore security rules.
+//
+// Paste these into Firebase Console → Firestore Database → Rules → Publish.
+// (Or deploy via `firebase deploy --only firestore:rules` if you have the
+// Firebase CLI set up.)
+//
+// Layout:
+//   users/{uid}                      — profile + streak
+//   decks/{deckId}                   — owned by deck.userId
+//   decks/{deckId}/cards/{cardId}    — subcollection, ownership via userId field
+//   favorites/{userId}_{cardId}      — flat collection scoped by userId field
+//   scores/{scoreId}                 — game scores scoped by userId field
+//
+// Security model: a user can only read/write documents whose `userId` matches
+// their auth uid. Cards inherit ownership through their denormalized userId
+// field (also used by the collectionGroup query in StatsProvider).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------- users --------
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+
+    // -------- decks --------
+    match /decks/{deckId} {
+      // Reading or updating an existing deck: must own it.
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.userId == request.auth.uid;
+      // Creating a new deck: the userId field in the new doc must be the
+      // caller. Prevents users from forging decks owned by someone else.
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+
+      // -------- decks/{deckId}/cards (subcollection) --------
+      match /cards/{cardId} {
+        allow read, update, delete: if request.auth != null
+                                    && resource.data.userId == request.auth.uid;
+        allow create: if request.auth != null
+                      && request.resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // collectionGroup('cards') used by StatsProvider — scoped by userId.
+    match /{path=**}/cards/{cardId} {
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+    }
+
+    // -------- favorites --------
+    match /favorites/{favoriteId} {
+      allow read, update, delete: if request.auth != null
+                                  && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+    }
+
+    // -------- scores --------
+    match /scores/{scoreId} {
+      allow read: if request.auth != null
+                  && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+    }
+  }
+}
